@@ -318,3 +318,25 @@ def test_piper_follower_connect_calibrates_then_reenables(monkeypatch, tmp_path)
         assert robot.arm.is_enabled
     finally:
         robot.disconnect()
+
+
+def test_piper_follower_connect_without_calibration_still_enables(monkeypatch, tmp_path):
+    patch_fake_sdk(monkeypatch)
+
+    robot = PiperFollower(
+        PiperFollowerConfig(
+            port="can0",
+            id="connect_enable_without_calibration",
+            calibration_dir=tmp_path,
+            calibration_mode="required",
+            enable_on_connect=True,
+        )
+    )
+
+    robot.connect(calibrate=False)
+    try:
+        assert robot.arm.enable_calls == 1
+        assert robot.arm.is_enabled
+        assert robot.arm.disable_calls == 0
+    finally:
+        robot.disconnect()
