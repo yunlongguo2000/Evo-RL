@@ -53,6 +53,10 @@ class PiperLeaderConfigBase:
     mode_refresh_interval_s: float = 1.0
     enable_timeout_s: float = 3.0
 
+    # Calibration precision:
+    # homing_offset/range_min/range_max are stored as "degree * calibration_scale".
+    calibration_scale: int = 1000
+
     # Safety behavior on disconnect
     disable_on_disconnect: bool = False
 
@@ -67,6 +71,8 @@ class PiperLeaderConfig(TeleoperatorConfig, PiperLeaderConfigBase):
             raise ValueError("`mode_refresh_interval_s` must be >= 0.")
         if self.enable_timeout_s < 0:
             raise ValueError("`enable_timeout_s` must be >= 0.")
+        if self.calibration_scale <= 0:
+            raise ValueError("`calibration_scale` must be > 0.")
         if self.startup_sleep_s < 0:
             raise ValueError("`startup_sleep_s` must be >= 0.")
         if not (0 <= self.gripper_effort_default <= 5000):

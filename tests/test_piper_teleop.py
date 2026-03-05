@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import lerobot.utils.piper_sdk as piper_sdk_utils
 import lerobot.robots.piper_follower.piper_follower as piper_follower_module
 import lerobot.teleoperators.piper_leader.piper_leader as piper_leader_module
+from lerobot.motors import MotorCalibration
 from lerobot.robots.piper_follower import PiperFollower, PiperFollowerConfig
 from lerobot.robots.utils import make_robot_from_config
 from lerobot.teleoperators.piper_leader import PiperLeader, PiperLeaderConfig
@@ -114,6 +115,19 @@ def patch_fake_sdk(monkeypatch):
     monkeypatch.setattr(piper_leader_module, "get_piper_sdk", fake_loader)
 
 
+def make_identity_calibration():
+    return {
+        key: MotorCalibration(
+            id=idx,
+            drive_mode=0,
+            homing_offset=0,
+            range_min=-200000,
+            range_max=200000,
+        )
+        for idx, key in enumerate([f"joint_{i}.pos" for i in range(1, 7)] + ["gripper.pos"])
+    }
+
+
 def test_piper_leader_follower_teleop_roundtrip(monkeypatch):
     patch_fake_sdk(monkeypatch)
 
@@ -135,8 +149,11 @@ def test_piper_leader_follower_teleop_roundtrip(monkeypatch):
     assert isinstance(teleop, PiperLeader)
     assert isinstance(robot, PiperFollower)
 
-    teleop.connect()
-    robot.connect()
+    teleop.calibration = make_identity_calibration()
+    robot.calibration = make_identity_calibration()
+
+    teleop.connect(calibrate=False)
+    robot.connect(calibrate=False)
     try:
         action = teleop.get_action()
         sent = robot.send_action(action)
@@ -167,14 +184,29 @@ def test_piper_leader_follower_teleop_roundtrip(monkeypatch):
         robot.disconnect()
 
 
-def test_piper_calibration_is_noop(monkeypatch):
+def test_piper_requires_calibration(monkeypatch):
     patch_fake_sdk(monkeypatch)
 
     teleop = PiperLeader(PiperLeaderConfig(port="can1"))
     robot = PiperFollower(PiperFollowerConfig(port="can0"))
 
-    assert teleop.is_calibrated
-    assert robot.is_calibrated
+    assert not teleop.is_calibrated
+    assert not robot.is_calibrated
 
-    teleop.calibrate()
-    robot.calibrate()
+    teleop.connect(calibrate=False)
+    robot.connect(calibrate=False)
+    try:
+        try:
+            teleop.get_action()
+            assert False, "Expected teleop.get_action() to require calibration."
+        except RuntimeError:
+            pass
+
+        try:
+            robot.send_action({"joint_1.pos": 0.0})
+            assert False, "Expected robot.send_action() to require calibration."
+        except RuntimeError:
+            pass
+    finally:
+        teleop.disconnect()
+        robot.disconnect()
