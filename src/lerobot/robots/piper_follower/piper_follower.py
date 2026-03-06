@@ -29,7 +29,6 @@ from lerobot.utils.piper_sdk import (
     get_piper_sdk,
     milli_to_unit,
     parse_piper_log_level,
-    should_require_piper_calibration,
     unit_to_milli,
 )
 from lerobot.utils.utils import enter_pressed, move_cursor_up
@@ -98,7 +97,7 @@ class PiperFollower(Robot):
             should_auto_calibrate = (
                 not self.is_calibrated
                 and calibrate
-                and should_require_piper_calibration(self.config.calibration_mode)
+                and self.config.require_calibration
             )
             if should_auto_calibrate:
                 logger.info(
@@ -125,7 +124,7 @@ class PiperFollower(Robot):
         logger.info("%s connected.", self)
 
     def _use_uncalibrated_passthrough(self) -> bool:
-        return not self.is_calibrated and not should_require_piper_calibration(self.config.calibration_mode)
+        return not self.is_calibrated and not self.config.require_calibration
 
     @property
     def is_calibrated(self) -> bool:

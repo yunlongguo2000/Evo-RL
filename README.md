@@ -213,7 +213,7 @@ lerobot-setup-can --mode=setup --interfaces=can0,can1
 
 PiPER calibration is required by default.
 If needed, you can disable it with
-`--robot.calibration_mode=off` and `--teleop.calibration_mode=off`.
+`--robot.require_calibration=false` and `--teleop.require_calibration=false`.
 
 If you switch master/follower roles with the flags below, you must power-cycle both arms before enabling.
 

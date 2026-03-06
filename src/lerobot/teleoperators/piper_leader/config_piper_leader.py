@@ -16,7 +16,7 @@
 
 from dataclasses import dataclass
 
-from lerobot.utils.piper_sdk import PIPER_CALIBRATION_MODES
+
 
 from ..config import TeleoperatorConfig
 
@@ -58,10 +58,8 @@ class PiperLeaderConfigBase:
     # Calibration precision:
     # homing_offset/range_min/range_max are stored as "degree * calibration_scale".
     calibration_scale: int = 1000
-    # Calibration policy:
-    # - required: always require calibration
-    # - off: never require calibration
-    calibration_mode: str = "required"
+    # Whether calibration is required on connect when no calibration file exists
+    require_calibration: bool = True
 
     # Safety behavior on disconnect
     disable_on_disconnect: bool = False
@@ -79,8 +77,8 @@ class PiperLeaderConfig(TeleoperatorConfig, PiperLeaderConfigBase):
             raise ValueError("`enable_timeout_s` must be >= 0.")
         if self.calibration_scale <= 0:
             raise ValueError("`calibration_scale` must be > 0.")
-        if self.calibration_mode not in PIPER_CALIBRATION_MODES:
-            raise ValueError("`calibration_mode` must be one of: required, off.")
+        if not isinstance(self.require_calibration, bool):
+            raise ValueError("require_calibration must be true or false.")
         if self.startup_sleep_s < 0:
             raise ValueError("`startup_sleep_s` must be >= 0.")
         if not (0 <= self.gripper_effort_default <= 5000):
