@@ -576,7 +576,7 @@ Iterative training loop (abstract):
 
 ```bibtex
 @misc{evorl2026,
-  title        = {Evo-RL: Continuous Open-Source Real-World RL on SO101 and Beyond},
+  title        = {Evo-RL: Towards Iterative Policy Improvement in Real-World Offline RL},
   author       = {Evo-RL Contributors},
   year         = {2026},
   howpublished = {\url{https://github.com/MINT-SJTU/Evo-RL}}
